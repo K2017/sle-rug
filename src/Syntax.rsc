@@ -42,6 +42,9 @@ syntax Expr
          )
   > left and: Expr l "&&" Expr r
   > left or: Expr l "||" Expr r
+  | Str
+  | Int
+  | Bool
   ;
   
 syntax Type 
