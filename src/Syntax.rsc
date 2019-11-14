@@ -24,6 +24,9 @@ syntax Question
 // and use C/Java style precedence rules (look it up on the internet)
 syntax Expr 
   = Id \ "true" \ "false" // true/false are reserved keywords.
+  | Str
+  | Int
+  | Bool
   | bracket "(" Expr e ")"
   > right not: "!" Expr e 
   > left (mult: Expr l "*" Expr r
@@ -42,9 +45,6 @@ syntax Expr
          )
   > left and: Expr l "&&" Expr r
   > left or: Expr l "||" Expr r
-  | Str
-  | Int
-  | Bool
   ;
   
 syntax Type 
