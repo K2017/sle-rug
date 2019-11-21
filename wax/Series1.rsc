@@ -1,5 +1,6 @@
 module Series1
 
+import IO;
 
 /*
  * Documentation: http://docs.rascal-mpl.org 
@@ -15,6 +16,7 @@ module Series1
  */
  
 void helloWorld() {
+    println("Henlo World!");
 } 
 
 
@@ -24,12 +26,29 @@ void helloWorld() {
  * - implement as list-returning function
  */
  
-void fizzBuzz() {
-
+void fizzBuzz1() {
+    for(i <- [0..100]) {
+        if(i % 15 == 0) {
+            print("fizzbuzz");
+        }
+        else if(i % 5 == 0) {
+            print("buzz");
+        }
+        else if(i % 3 == 0) {
+            print("fizz");
+        } else {
+            print("<i>");
+        }
+        print(" ");
+    }
 }
 
-list[str] fizzBuzz() {
-
+list[str] fizzBuzz2() {
+    list[str] ret = [i % 15 == 0 ? "fizzbuzz" : 
+                     i % 5 == 0 ? "buzz" : 
+                     i % 3 == 0 ? "fizz" : 
+                     "<i>" | i <- [0..100]];
+    return ret;
 }
 
 /*
@@ -41,12 +60,14 @@ list[str] fizzBuzz() {
  
 
 int factorial(int n) {
-
+    if (n == 0) return 0;
+    if (n == 1) return 1;
+    return n*factorial(n-1);
 }
 
 int fact(0) = 1;
 int fact(1) = 1;
-
+int fact(n) = n*fact(n-1);
 
 
 
@@ -58,14 +79,16 @@ int fact(1) = 1;
 void comprehensions() {
 
   // construct a list of squares of integer from 0 to 9 (use range [0..10])
-  
+  println("list of squares: <[i*i | i <- [0..10]]>");
   // same, but construct a set
+  println("set of squares: <{i*i | i <- [0..10]}>");
   
   // same, but construct a map
-
+  println("map of squares: <(i:i*i | i <- [0..10])>");
   // construct a list of factorials from 0 to 9
-  
-  // same, but no only for even numbers  
+  println("list of factorials: <[fact(i) | i <- [0..10]]>");
+  // same, but no only for even numbers 
+  println("same but for even: <[fact(i) | i <- [0..10], i % 2 == 0]>");
 }
  
 
@@ -79,21 +102,17 @@ void patternMatching() {
   str hello = "Hello World!";
   
   
- 
   // print all splits of list
   list[int] aList = [1,2,3,4,5];
-  for ([/*TODO*/] := aList) {
-    ;
+  for ([*hd,*tl] := aList) {
+    println("<hd> <tl>");
   }
   
   // print all partitions of a set
   set[int] aSet = {1,2,3,4,5};
-  for ({/*TODO*/} := aSet) {
-    ;
+  for ({*hd,*tl} := aSet) {
+    println("<hd> <tl>");
   } 
-
-  
-
 }  
  
  
@@ -106,7 +125,9 @@ void patternMatching() {
  */
  
 data ColoredTree
-  = leaf(int n);
+  = leaf(int n)
+  | red(ColoredTree l, ColoredTree r)
+  | black(ColoredTree l, ColoredTree r);
   
 
 ColoredTree exampleTree()
@@ -117,30 +138,42 @@ ColoredTree exampleTree()
 // write a recursive function summing the leaves
 // (use switch or pattern-based dispatch)
 
-int sumLeaves(ColoredTree t) = 0; // TODO: Change this!
+int sumLeaves(leaf(n)) = n;
+int sumLeaves(red(l, r)) = sumLeaves(l) + sumLeaves(r);
+int sumLeaves(black(l, r)) = sumLeaves(l) + sumLeaves(r);
 
 // same, but now with visit
 int sumLeavesWithVisit(ColoredTree t) {
-
+    int sum = 0;
+    visit(t) {
+        case leaf(n): sum = sum + n;
+    };
+    return sum;
 }
 
 // same, but now with a for loop and deep match
 int sumLeavesWithFor(ColoredTree t) {
-
+    int sum = 0;
+    for(/leaf(n) := t) {
+        sum = sum + n;
+    }
+    return sum;
 }
 
 // same, but now with a reducer and deep match
 // Reducer = ( <initial value> | <some expression with `it` | <generators> )
-int sumLeavesWithReducer(ColoredTree t) = 0; // TODO: Change this!
+int sumLeavesWithReducer(ColoredTree t) = ( 0 | it + e | /leaf(e) <- t); 
 
 
 // add 1 to all leaves; use visit + =>
 ColoredTree inc1(ColoredTree t) {
-  
+    return visit(t) {
+        case leaf(n) => leaf(n+1)
+    };
 }
 
 // write a test for inc1, run from console using :test
-test bool testInc1() = false;
+test bool testInc1() = sumLeaves(inc1(exampleTree())) == 20;
 
 // define a property for inc1, i.e. a boolean
 // function that checks if one tree is inc1 of the other
@@ -149,12 +182,15 @@ test bool testInc1() = false;
 // or pattern based dispatch.
 // Hint! The tree also needs to have the same shape!
 bool isInc1(ColoredTree t1, ColoredTree t2) {
-
+    switch(<t1,t2>) {
+        case </int e1, /int e2>: if(!(e1 == e2 + 1 || e2 == e1 + 1)) return false;
+    }
+    return true;
 }
  
 // write a randomized test for inc1 using the property
 // again, execute using :test
-test bool testInc1Randomized(ColoredTree t1) = false;
+test bool testInc1Randomized(ColoredTree t1) = isInc1(inc1(t1), t1);
 
 
  

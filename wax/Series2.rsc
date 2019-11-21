@@ -3,6 +3,7 @@ module Series2
 import ParseTree;
 import IO;
 import String;
+import Boolean;
 
 /*
  * Syntax definition
@@ -17,7 +18,8 @@ syntax Object
   ;
   
 syntax Element
-  = ; // Fill in  
+  = String name ":" Value val
+  ;
   
 syntax Value
   = String
@@ -32,8 +34,8 @@ syntax Null
   = "null";
   
 syntax Boolean
-  = // Fill in
-  | // Fill in
+  = "true" // Fill in
+  | "false" // Fill in
   ;  
   
 syntax Array
@@ -44,7 +46,7 @@ lexical String
   = [\"] ![\"]* [\"]; // slightly simplified
   
 lexical Number
-  = ; // Fill in. Hint; think of the pattern for numbers in regular expressions. How do you accept a number in a regex?  
+  = [0-9]+ ; // Fill in. Hint; think of the pattern for numbers in regular expressions. How do you accept a number in a regex?  
 
 layout Whitespace = [\ \t\n]* !>> [\ \t\n];  
   
@@ -57,7 +59,9 @@ start[JSON] example()
           '  \"address\": {
           '     \"street\": \"Wallstreet\",
           '     \"number\": 102
-          '  }
+          '  },
+          '  \"residences\": [\"chicago\",\"florida\"],
+          '  \"married\": true
           '}");    
   
 
@@ -66,7 +70,11 @@ start[JSON] example()
 // - use concrete pattern matching
 // - use "<x>" to convert a String x to str
 set[str] propNames(start[JSON] json) {
-
+    set[str] ret = {};
+    for(/Element x := json) {
+        ret = ret + "<x.name>";
+    }
+    return ret;
 }
 
 // define a recursive transformation mapping JSON to map[str,value] 
@@ -76,13 +84,17 @@ set[str] propNames(start[JSON] json) {
 map[str, value] json2map(start[JSON] json) = json2map(json.top);
 
 map[str, value] json2map((JSON)`<Object obj>`)  = json2map(obj);
-map[str, value] json2map((Object)`{<{Element ","}* elems>}`) = ( /* Create the map using a comprehension */);
+map[str, value] json2map((Object)`{<{Element ","}* elems>}`) = ( unquote("<elem.name>"):json2value(elem.val) | Element elem <- elems );
 
 str unquote(str s) = s[1..-1];
 
 value json2value((Value)`<String s>`)    = unquote("<s>"); // This is an example how to transform the String literal to a value
-value json2value((Value)`<Number n>`)    = -1; // ... This needs to change. The String module contains a function to convert a str to int
-// The other alternatives are missing. You need to add them.
+value json2value((Value)`<Number n>`)    = toInt("<n>"); // ... This needs to change. The String module contains a function to convert a str to int
+value json2value((Value)`<Boolean b>`)   = fromString("<b>");
+value json2value((Value)`<Array ar>`)    = json2value(ar);
+value json2value((Array)`[<{Value ","}* vals>]`) = [json2value(val) | Value val <- vals];
+value json2value((Value)`<Object ob>`)   = json2map(ob);
+value json2value((Value)`<Null nu>`)     = "null";
 
 default value json2value(Value v) { throw "No tranformation function for `<v>` defined"; }
 
@@ -92,7 +104,9 @@ test bool example2map() = json2map(example()) == (
   "address" : (
      "street" : "Wallstreet",
      "number" : 102
-  )
+  ),
+  "residences" : ["chicago","florida"],
+  "married": true
 );
 
  
