@@ -23,10 +23,10 @@ AForm cst2ast(start[Form] sf) {
 
 AQuestion cst2ast(Question q) {
   switch(q) {
-    case "question"(label,x,declType): 
-        return question("<label>", id("<x>", src=x@\loc), "<declType>", src=q@\loc);
-    case "computed"(label,x,declType,exp): 
-        return computed("<label>", id("<x>", src=x@\loc), "<declType>", cst2ast(exp), src=q@\loc);
+    case "question"(label,x,tp): 
+        return question("<label>", id("<x>", src=x@\loc), cst2ast(tp), src=q@\loc);
+    case "computed"(label,x,tp,exp): 
+        return computed("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(exp), src=q@\loc);
     case "block"(questions): 
         return block([cst2ast(q) | q <- questions], src=q@\loc);
     case "ifthen"(guard,ifqs): 
@@ -39,10 +39,10 @@ AQuestion cst2ast(Question q) {
 
 AExpr cst2ast(Expr e) {
   switch (e) {
-    case (Expr)`<Id x>`: return ref("<x>", src=x@\loc);
-    case (Expr)`<Type t>`: return var(cst2ast(t), src=t@\loc);
-    case (Expr)`(<Expr exp>)`: return cst2ast(exp); 
-    case "not"(exp): return not(cst2ast(exp), src=e@\loc);
+    case "iden"(x): return ref(id("<x>"), src=x@\loc);
+    case "constant"(val): return const(cst2ast(val), src=val@\loc);
+    case "brack"(exp): return cst2ast(exp); 
+    case "not"(exp): return not(cst2ast(exp), src=exp@\loc);
 
     case "mul"(lhs,rhs): return mul(cst2ast(lhs), cst2ast(rhs));
     case "div"(lhs,rhs): return div(cst2ast(lhs), cst2ast(rhs));
@@ -65,9 +65,17 @@ AExpr cst2ast(Expr e) {
 }
 
 AType cst2ast(Type t) {
-  switch(t) {
-    case "integer"(iVal): return nat(toInt("<iVal>"), src=iVal@\loc);
-    case "string"(sVal): return string("<sVal>", src=sVal@\loc);
-    case "boolean"(bVal): return boolean(fromString("<bVal>"), src=bVal@\loc);
+  switch("<t>") {
+    case "integer": return integer();
+    case "string": return string();
+    case "boolean": return boolean();
   }
+}
+
+AConst cst2ast(Const c) {
+    switch(c)  {
+        case "integer"(iVal): return integer(toInt("<iVal>"), src=iVal@\loc);
+        case "string"(sVal): return string("<sVal>", src=sVal@\loc);
+        case "boolean"(bVal): return boolean(fromString("<bVal>"), src=bVal@\loc);
+    }
 }

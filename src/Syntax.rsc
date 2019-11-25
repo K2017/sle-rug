@@ -12,8 +12,8 @@ start syntax Form
 
 // TODO: question, computed question, block, if-then-else, if-then
 syntax Question
-  = question: Str Id ":" TypeDecl 
-  | computed: Str Id ":" TypeDecl "=" Expr
+  = question: Str Id ":" Type 
+  | computed: Str Id ":" Type "=" Expr
   | block: "{" Question* "}" 
   | ifthen: "if" "(" Expr ")" "{" Question* "}" 
   | ifthenelse: "if" "(" Expr ")" "{" Question* "}" "else" "{" Question* "}" 
@@ -23,9 +23,9 @@ syntax Question
 // Think about disambiguation using priorities and associativity
 // and use C/Java style precedence rules (look it up on the internet)
 syntax Expr 
-  = Id \ "true" \ "false" // true/false are reserved keywords.
-  | Type
-  | bracket "(" Expr e ")"
+  = iden: Id \ "true" \ "false" // true/false are reserved keywords.
+  | constant: Const
+  | bracket brack: "(" Expr e ")"
   > right not: "!" Expr e 
   > left ( mul: Expr l "*" Expr r
          | div: Expr l "/" Expr r
@@ -45,13 +45,13 @@ syntax Expr
   > left or: Expr l "||" Expr r
   ;
   
-syntax Type 
+syntax Const 
   = integer: Int
   | string: Str
   | boolean: Bool
   ;  
 
-syntax TypeDecl
+syntax Type
   = integer: "integer"
   | string: "string"
   | boolean: "boolean"

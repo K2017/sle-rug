@@ -12,16 +12,18 @@ data AForm(loc src = |tmp:///|)
   ; 
 
 data AQuestion(loc src = |tmp:///|)
-  = question(str label, AId id, str declType)
-  | computed(str label, AId id, str declType, AExpr expr)
+  = question(str label, AId id, AType tp)
+  | computed(str label, AId id, AType tp, AExpr expr)
   | block(list[AQuestion] questions)
   | ifthen(AExpr guard, list[AQuestion] questions)
   | ifthenelse(AExpr guard, list[AQuestion] ifqs, list[AQuestion] elseqs)
   ; 
 
 data AExpr(loc src = |tmp:///|)
-  = ref(str x)
-  | var(AType val)
+  = ref(AId id)
+  | const(AConst val)
+
+  | brack(AExpr exp)
 
   | not(AExpr exp)
   | mul(AExpr lhs, AExpr rhs)
@@ -45,7 +47,13 @@ data AId(loc src = |tmp:///|)
   = id(str name);
 
 data AType(loc src = |tmp:///|)
-  = nat(int iVal) 
+  = integer()
+  | string()
+  | boolean()
+  ;
+
+data AConst(loc src = |tmp:///|)
+  = integer(int iVal) 
   | string(str sVal)
   | boolean(bool bVal)
-  ;
+  ; 
