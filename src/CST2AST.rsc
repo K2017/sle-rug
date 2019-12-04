@@ -27,12 +27,12 @@ AQuestion cst2ast(Question q) {
         return question("<label>", id("<x>", src=x@\loc), cst2ast(tp));
     case "computed"(label,x,tp,exp): 
         return computed("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(exp));
-    case "block"(questions): 
-        return block([cst2ast(q) | q <- questions]);
+    case "block"(bquestions): 
+        return block([cst2ast(qs) | qs <- bquestions]);
     case "ifthen"(guard,ifqs): 
-        return ifthen(cst2ast(guard), [cst2ast(iq) | iq <- ifqs]);
+        return ifthen(cst2ast(guard), cst2ast(ifqs));
     case "ifthenelse"(guard,ifqs,elseqs): 
-        return ifthenelse(cst2ast(guard), [cst2ast(iq) | iq <- ifqs], [cst2ast(eq) | eq <- elseqs]);
+        return ifthenelse(cst2ast(guard), cst2ast(ifqs), cst2ast(elseqs));
     default: throw "Unhandled question <q>";
   }
 }

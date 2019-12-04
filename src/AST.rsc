@@ -14,9 +14,9 @@ data AForm(loc src = |tmp:///|)
 data AQuestion(loc src = |tmp:///|)
   = question(str label, AId id, AType tp)
   | computed(str label, AId id, AType tp, AExpr expr)
-  | block(list[AQuestion] questions)
-  | ifthen(AExpr guard, list[AQuestion] questions)
-  | ifthenelse(AExpr guard, list[AQuestion] ifqs, list[AQuestion] elseqs)
+  | block(list[AQuestion] bquestions)
+  | ifthen(AExpr guard, AQuestion ifq)
+  | ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)
   ; 
 
 data AExpr(loc src = |tmp:///|)

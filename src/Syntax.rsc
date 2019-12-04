@@ -14,9 +14,9 @@ start syntax Form
 syntax Question
   = question: Str Id ":" Type 
   | computed: Str Id ":" Type "=" Expr
-  | block: "{" Question* "}" 
-  | ifthen: "if" "(" Expr ")" "{" Question* "}" 
-  | ifthenelse: "if" "(" Expr ")" "{" Question* "}" "else" "{" Question* "}" 
+  | block: "{" Question* qs "}" 
+  | ifthen: "if" "(" Expr ")" Question ifq
+  | ifthenelse: "if" "(" Expr ")" Question ifq "else" Question elseq
   ; 
 
 // TODO: +, -, *, /, &&, ||, !, >, <, <=, >=, ==, !=, literals (bool, int, str)
