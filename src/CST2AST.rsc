@@ -24,25 +24,25 @@ AForm cst2ast(start[Form] sf) {
 AQuestion cst2ast(Question q) {
   switch(q) {
     case "question"(label,x,tp): 
-        return question("<label>", id("<x>", src=x@\loc), cst2ast(tp), src=q@\loc);
+        return question("<label>", id("<x>", src=x@\loc), cst2ast(tp));
     case "computed"(label,x,tp,exp): 
-        return computed("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(exp), src=q@\loc);
+        return computed("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(exp));
     case "block"(questions): 
-        return block([cst2ast(q) | q <- questions], src=q@\loc);
+        return block([cst2ast(q) | q <- questions]);
     case "ifthen"(guard,ifqs): 
-        return ifthen(cst2ast(guard), [cst2ast(iq) | iq <- ifqs], src=q@\loc);
+        return ifthen(cst2ast(guard), [cst2ast(iq) | iq <- ifqs]);
     case "ifthenelse"(guard,ifqs,elseqs): 
-        return ifthenelse(cst2ast(guard), [cst2ast(iq) | iq <- ifqs], [cst2ast(eq) | eq <- elseqs], src=q@\loc);
+        return ifthenelse(cst2ast(guard), [cst2ast(iq) | iq <- ifqs], [cst2ast(eq) | eq <- elseqs]);
     default: throw "Unhandled question <q>";
   }
 }
 
 AExpr cst2ast(Expr e) {
   switch (e) {
-    case "iden"(x): return ref(id("<x>"), src=x@\loc);
+    case "iden"(x): return ref(id("<x>", src=x@\loc), src=x@\loc);
     case "constant"(val): return const(cst2ast(val), src=val@\loc);
     case "brack"(exp): return cst2ast(exp); 
-    case "not"(exp): return not(cst2ast(exp), src=exp@\loc);
+    case "not"(exp): return not(cst2ast(exp));
 
     case "mul"(lhs,rhs): return mul(cst2ast(lhs), cst2ast(rhs));
     case "div"(lhs,rhs): return div(cst2ast(lhs), cst2ast(rhs));

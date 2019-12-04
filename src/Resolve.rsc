@@ -26,7 +26,7 @@ RefGraph resolve(AForm f) = <us, ds, us o ds>
   when Use us := uses(f), Def ds := defs(f);
 
 Use uses(AForm f) {
-  return {<r.src, "<id.name>"> | /r:ref(id) := f}; 
+  return {<r.src, x> | /r:ref(id(x)) := f}; 
 }
 
 Def defs(AForm f) {
