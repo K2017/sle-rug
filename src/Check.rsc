@@ -4,6 +4,7 @@ import AST;
 import Resolve;
 import Message; // see standard library
 import IO;
+import Location;
 
 data Type
   = tint()
@@ -59,21 +60,30 @@ set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
   switch(q) {
     case question(str label, AId id, AType tp, src = loc u): {
-        if(<_,"<id.name>",_,t> <- tenv) {
-          if(t != toType(tp)) {
-            msgs += {error("Declaration type mismatch", u)};
-          }
-          println(label);
-        } 
-        if(<_,name,label,_> <- tenv) {
-          if(name != "<id.name>") {
-            msgs += {warning("Duplicate label", u)};
-          }
-        } 
+      str qname = "<id.name>";
+      for(<loc def, str name, str l, Type t> <- tenv) {
+        if(name == qname && t != toType(tp) && isBefore(def, u)) {
+          msgs += {error("Declaration type mismatch", u)};
+        }
+        if(l == label && isBefore(def, u)) {
+          msgs += {warning("Duplicate label", u)};
+        }
+      } 
+    }
+    case computed(str label, AId id, AType tp, AExpr exp, src = loc u): {
+      if (toType(tp) != typeOf(exp, tenv, useDef)) {
+        msgs += {error("Expression does not match declared type", u)};
       }
-      /*
-    case computed(str label, AId id, AType tp, AExpr exp, src = loc u):
-      msgs += { error("Declared type does not match expression type", u) | <_, _, l, t> <- tenv, label == l, typeOf(exp) != t};*/
+      str qname = "<id.name>";
+      for(<loc def, str name, str l, Type t> <- tenv) {
+        if(name == qname && t != toType(tp) && isBefore(def, u)) {
+          msgs += {error("Declaration type mismatch", u)};
+        }
+        if(l == label && isBefore(def, u)) {
+          msgs += {warning("Duplicate label", u)};
+        }
+      } 
+    }
   }
   return msgs; 
 }

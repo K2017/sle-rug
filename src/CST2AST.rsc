@@ -23,10 +23,12 @@ AForm cst2ast(start[Form] sf) {
 
 AQuestion cst2ast(Question q) {
   switch(q) {
-    case "question"(label,x,tp): 
-        return question("<label>", id("<x>", src=x@\loc), cst2ast(tp));
-    case "computed"(label,x,tp,exp): 
-        return computed("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(exp));
+    case (Question)(label,x,tp,assig): {
+      if ((("=" Expr)?)`<Expr exp>` := assig) {
+        return question("<label>", id("<x>", src=x@\loc), cst2ast(tp), cst2ast(assig), src=q@\loc);
+      }
+      return question("<label>", id("<x>", src=x@\loc), cst2ast(tp), src=q@\loc);
+    }
     case "block"(bquestions): 
         return block([cst2ast(qs) | qs <- bquestions]);
     case "ifthen"(guard,ifqs): 
