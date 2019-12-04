@@ -12,14 +12,15 @@ data AForm(loc src = |tmp:///|)
   ; 
 
 data AQuestion(loc src = |tmp:///|)
-  = question(str label, AId id, AType tp, AExpr exp = ())
+  = question(str label, AId id, AType tp, AExpr ex = empty())
   | block(list[AQuestion] bquestions)
   | ifthen(AExpr guard, AQuestion ifq)
   | ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)
   ; 
 
 data AExpr(loc src = |tmp:///|)
-  = ref(AId id)
+  = empty()
+  | ref(AId id)
   | const(AConst val)
 
   | brack(AExpr exp)
@@ -49,6 +50,7 @@ data AType(loc src = |tmp:///|)
   = integer()
   | string()
   | boolean()
+  | unknown()
   ;
 
 data AConst(loc src = |tmp:///|)

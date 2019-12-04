@@ -21,14 +21,13 @@ alias TEnv = rel[loc def, str name, str label, Type \type];
 TEnv collect(AForm f) {
   TEnv env = {};
   visit(f) {
-    case /computed(str label, AId id, AType tp, _, src = loc u): env = env + <u, id.name, label, toType(tp)>;
-    case /question(str label, AId id, AType tp, src = loc u): env = env + <u, id.name, label, toType(tp)>;
+    case /question(str label, AId id, AType tp, ex = AExpr exp, src = loc u): env = env + <id.src, id.name, label, toType(tp)>;
   }
   return env; 
 }
 
-Type toType(AType tp) {
-    switch(tp) {
+Type toType(AType t) {
+    switch(t) {
         case integer(): return tint();
         case string(): return tstr();
         case boolean(): return tbool();
@@ -45,6 +44,15 @@ Type toType(AConst c) {
     }
 }
 
+AType fromType(Type t) {
+    switch(t) {
+        case tint(): return integer();
+        case tstr(): return string();
+        case tbool(): return boolean();
+        default: return unknown();
+    }
+}
+
 set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
   for(/AQuestion q := f) {
@@ -58,25 +66,19 @@ set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
 // - the declared type computed questions should match the type of the expression.
 set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
+
   switch(q) {
-    case question(str label, AId id, AType tp, src = loc u): {
+    case question(str label, AId id, AType tp, ex = AExpr exp, src = loc u): {
       str qname = "<id.name>";
-      for(<loc def, str name, str l, Type t> <- tenv) {
-        if(name == qname && t != toType(tp) && isBefore(def, u)) {
-          msgs += {error("Declaration type mismatch", u)};
+      Type qtype = toType(tp);
+      if (exp != empty()) {
+        msgs += check(exp, tenv, useDef);
+        if (qtype != typeOf(exp, tenv, useDef)) {
+          msgs += {error("Expression does not match declared type", u)};
         }
-        if(l == label && isBefore(def, u)) {
-          msgs += {warning("Duplicate label", u)};
-        }
-      } 
-    }
-    case computed(str label, AId id, AType tp, AExpr exp, src = loc u): {
-      if (toType(tp) != typeOf(exp, tenv, useDef)) {
-        msgs += {error("Expression does not match declared type", u)};
       }
-      str qname = "<id.name>";
       for(<loc def, str name, str l, Type t> <- tenv) {
-        if(name == qname && t != toType(tp) && isBefore(def, u)) {
+        if(name == qname && t != qtype && isBefore(def, u)) {
           msgs += {error("Declaration type mismatch", u)};
         }
         if(l == label && isBefore(def, u)) {
@@ -93,14 +95,91 @@ set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
 //   the requirement is that typeOf(lhs) == typeOf(rhs) == tint()
 set[Message] check(AExpr e, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
-  
-  switch (e) {
-    case ref(AId id, src = loc u):
-      msgs += { error("Undeclared question", u) | useDef[u] == {} };
+  Type expType = typeOf(e, tenv, useDef);
+  AType expAtype = fromType(expType);
+  str msg = "Expected type <expAtype>"[..-2];
 
-    // etc.
+  switch (e) {
+    case ref(id, src = loc u):
+      msgs += { error("Undeclared question", u) | useDef[u] == {} };
+    case not(exp, src = loc u): {
+      msgs += { error(msg, u) 
+              | expType != typeOf(exp) 
+              };
+    }
+    case mul(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef)
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case div(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case add(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case sub(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case lt(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case leq(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case gt(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case geq(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case eq(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case neq(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case and(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
+    case or(lhs,rhs,src = loc u): {
+      msgs += { error(msg, u)
+              | expType != typeOf(lhs, tenv, useDef) || expType != typeOf(rhs, tenv, useDef) 
+              || typeOf(lhs, tenv, useDef) != typeOf(rhs, tenv, useDef)
+              };
+    }
   }
-  
   return msgs; 
 }
 
