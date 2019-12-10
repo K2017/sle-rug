@@ -194,8 +194,8 @@ set[Message] checkOperands(AExpr lhs, AExpr rhs, AExpr op, TEnv tenv, UseDef use
   str msg = "Expected type <getTypeName(opType)>";
 
   msgs += { error("Operands must be of the same type: <getTypeName(opType)>", op.src) | T_lhs != T_rhs };
-  msgs += { error(msg + ", got <getTypeName(T_lhs)>", lhs.src) | T_lhs != opType };
-  msgs += { error(msg + ", got <getTypeName(T_rhs)>", rhs.src) | T_rhs != opType };
+  msgs += { error(msg + ", got <getTypeName(T_lhs)>", lhs.src) | T_lhs != tint() };
+  msgs += { error(msg + ", got <getTypeName(T_rhs)>", rhs.src) | T_rhs != tint() };
   return msgs;
 }
 
