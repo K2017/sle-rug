@@ -12,11 +12,17 @@ form taxOfficeExample {
     
   "Did you enter a loan?"
     hasMaintLoan: boolean
+
+  "Did you enter a loan?"
+    loanMade: boolean
     
   "Did you sell a house in 2010?"
     hasSoldHouse: boolean
+
+  "Did you sell a house?"
+    hasSoldHouse: boolean
    
-  if (hasSoldHouse) {
+  if (hasSoldHouse * hasMaintLoan) {
     "What was the selling price?"
       sellingPrice: integer
     "Private debts for the sold house:"
