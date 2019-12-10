@@ -3,6 +3,8 @@ module Eval
 import AST;
 import Resolve;
 
+import IO;
+
 /*
  * Implement big-step semantics for QL
  */
@@ -27,7 +29,7 @@ data Input
 // produce an environment which for each question has a default value
 // (e.g. 0 for int, "" for str etc.)
 VEnv initialEnv(AForm f) {
-	return (name : defaultValue(t) | /question(_, id(name), t, _) := f);
+	return (i.name : defaultValue(t) | /question(_, i, t) := f);
 }
 
 Value defaultValue(AType t) {
@@ -51,14 +53,16 @@ VEnv eval(AForm f, Input inp, VEnv venv) {
 }
 
 VEnv evalOnce(AForm f, Input inp, VEnv venv) {
-	return (); 
+	for (/q:question(_, _, _) := f) venv = eval(q, inp, venv);
+	return venv;
 }
 
 VEnv eval(AQuestion q, Input inp, VEnv venv) {
 	// evaluate conditions for branching,
 	// evaluate inp and computed questions to return updated VEnv
-	venv[input.question] = input.\value;
-	return (n : (e == empty() ? venv[n] : eval(e, venv)) | n <- venv, question(_,_,_,e) := q); 
+	venv[inp.question] = inp.\value;
+	venv[q.id.name] = (q.ex == empty() ? venv[q.id.name] : eval(q.ex, venv));
+	return venv;
 }
 
 Value eval(AExpr e, VEnv venv) {
@@ -67,10 +71,10 @@ Value eval(AExpr e, VEnv venv) {
 		case const(AConst x): return eval(x);
 		case brack(AExpr x): return eval(x, venv);
 		case not(AExpr x): return vbool(!(eval(x, venv).b));
-		case mul(AExpr l, AExpr r): return vint(eval(l, venv).b * eval(r, venv).b);
-		case div(AExpr l, AExpr r): return vint(eval(l, venv).b / eval(r, venv).b);
-		case add(AExpr l, AExpr r): return vint(eval(l, venv).b + eval(r, venv).b);
-		case sub(AExpr l, AExpr r): return vint(eval(l, venv).b - eval(r, venv).b);
+		case mul(AExpr l, AExpr r): return vint(eval(l, venv).n * eval(r, venv).n);
+		case div(AExpr l, AExpr r): return vint(eval(l, venv).n / eval(r, venv).n);
+		case add(AExpr l, AExpr r): return vint(eval(l, venv).n + eval(r, venv).n);
+		case sub(AExpr l, AExpr r): return vint(eval(l, venv).n - eval(r, venv).n);
 		case lt(AExpr l, AExpr r): return vbool(eval(l, venv).b < eval(r, venv).b);
 		case leq(AExpr l, AExpr r): return vbool(eval(l, venv).b <= eval(r, venv).b);
 		case gt(AExpr l, AExpr r): return vbool(eval(l, venv).b > eval(r, venv).b);
