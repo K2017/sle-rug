@@ -25,7 +25,7 @@ void compile(AForm f) {
 
 HTML5Node form2html(AForm f) {
   list[value] attrs = []; 
-  list[value] children = [form2html(q) | /q:AQuestion _ <- f]; 
+  list[value] children = [form2html(q) | q:AQuestion _ <- f.questions]; 
   return html([body(div(attrs + children))]);
 }
 
@@ -54,6 +54,28 @@ HTML5Node form2html(AId i, AType t) {
   return input(attrs);
 }
 
+
+// ------ JavaScript ------
+
+data Condition 
+ = ifthencon(AExpr guard, AQuestion ifq)
+ | ifelsecon(AExpr guard, AQuestion ifq, AQuestion elseq)
+ ;
+
 str form2js(AForm f) {
   return "";
 }
+
+str form2js(ifthen(AExpr guard, AQuestion ifq)) {
+  return "if (<form2js(guard)>)\n  <form2js(ifq, true)>\nelse\n  <form2js(ifq, false)>";
+}
+
+str form2js(AQuestion q, bool visibly) {
+  
+}
+
+str form2js(AExpr e) {
+  
+}
+
+
