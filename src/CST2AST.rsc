@@ -29,7 +29,7 @@ AQuestion cst2ast(Question q) {
     case "computed"(label,x,tp,exp):
         return question("<label>", id("<x>", src=x@\loc), cst2ast(tp), ex = cst2ast(exp), src=q@\loc);
     case "block"(bquestions): 
-        return block([cst2ast(qs) | qs <- bquestions]);
+        return block([cst2ast(qs) | qs <- bquestions], src=q@\loc);
     case "ifthen"(guard,ifqs): 
         return ifthen(cst2ast(guard), cst2ast(ifqs));
     case "ifthenelse"(guard,ifqs,elseqs): 

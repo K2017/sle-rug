@@ -4,6 +4,7 @@ import AST;
 import Resolve;
 import IO;
 import lang::html5::DOM; // see standard library
+import List;
 
 /*
  * Implement a compiler for QL to HTML and Javascript
@@ -34,14 +35,21 @@ HTML5Node form2html(q:question(str label, AId id, AType tp)) {
   list[value] children = [p(label[1..-1]), form2html(id, tp)];
   return div(attrs + children);
 }
-HTML5Node form2html(block(list[AQuestion] qs)) {
-  return div([form2html(q) | q <- qs]);
+
+HTML5Node form2html(b:block(list[AQuestion] qs)) {
+  return div([id("block<b.src.offset>")] + [form2html(q) | q <- qs]);
 }
+
 HTML5Node form2html(ifthen(AExpr guard, AQuestion ifq)) {
-  return div();
+  list[value] attrs = [];
+  list[value] children = [form2html(ifq)];
+  return div(attrs + children);
 }
+
 HTML5Node form2html(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
-  return div();
+  list[value] attrs = [];
+  list[value] children = [form2html(ifq), form2html(elseq)];
+  return div(attrs + children);
 }
 
 HTML5Node form2html(AId i, AType t) {
@@ -57,25 +65,31 @@ HTML5Node form2html(AId i, AType t) {
 
 // ------ JavaScript ------
 
-data Condition 
- = ifthencon(AExpr guard, AQuestion ifq)
- | ifelsecon(AExpr guard, AQuestion ifq, AQuestion elseq)
- ;
-
 str form2js(AForm f) {
-  return "";
+  return "function updateVisibility() {\n<intercalate("\n", [form2js(q) | q <- f.questions ])>\n}";
 }
 
 str form2js(ifthen(AExpr guard, AQuestion ifq)) {
-  return "if (<form2js(guard)>)\n  <form2js(ifq, true)>\nelse\n  <form2js(ifq, false)>";
+  return "if (<form2js(guard)>)\n  <form2js(ifq, visible=true)>else\n  <form2js(ifq, visible=false)>";
 }
 
-str form2js(AQuestion q, bool visibly) {
-  
+str form2js(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
+  return "if (<form2js(guard)>)\n  <form2js(ifq, visible=true)><form2js(elseq, visible=false)>else\n  <form2js(ifq, visible=false)><form2js(elseq, visible=true)>";
+}
+
+str form2js(b:block(list[AQuestion] ifq), bool visible = true) {
+  return "document.getElementById(\'block<b.src.offset>\').style.display = <visible ? "initial" : "none">;\n";
+}
+
+str form2js(q:question(str label, AId id, AType tp), bool visible = true) {
+  return "document.getElementById(\'<id.name>\').style.display = <visible ? "initial" : "none">;\n";
 }
 
 str form2js(AExpr e) {
-  
+  return "";
+  /*switch (e) {
+    case ref(AId x): 
+  }*/
 }
 
 
