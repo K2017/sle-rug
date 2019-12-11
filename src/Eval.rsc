@@ -75,12 +75,12 @@ Value eval(AExpr e, VEnv venv) {
 		case div(AExpr l, AExpr r): return vint(eval(l, venv).n / eval(r, venv).n);
 		case add(AExpr l, AExpr r): return vint(eval(l, venv).n + eval(r, venv).n);
 		case sub(AExpr l, AExpr r): return vint(eval(l, venv).n - eval(r, venv).n);
-		case lt(AExpr l, AExpr r): return vbool(eval(l, venv).b < eval(r, venv).b);
-		case leq(AExpr l, AExpr r): return vbool(eval(l, venv).b <= eval(r, venv).b);
-		case gt(AExpr l, AExpr r): return vbool(eval(l, venv).b > eval(r, venv).b);
-		case geq(AExpr l, AExpr r): return vbool(eval(l, venv).b >= eval(r, venv).b);
-		case eq(AExpr l, AExpr r): return vbool(eval(l, venv).b == eval(r, venv).b);
-		case neq(AExpr l, AExpr r): return vbool(eval(l, venv).b != eval(r, venv).b);
+		case lt(AExpr l, AExpr r): return vbool(eval(l, venv).n < eval(r, venv).n);
+		case leq(AExpr l, AExpr r): return vbool(eval(l, venv).n <= eval(r, venv).n);
+		case gt(AExpr l, AExpr r): return vbool(eval(l, venv).n > eval(r, venv).n);
+		case geq(AExpr l, AExpr r): return vbool(eval(l, venv).n >= eval(r, venv).n);
+		case eq(AExpr l, AExpr r): return vbool(eval(l, venv).n == eval(r, venv).n);
+		case neq(AExpr l, AExpr r): return vbool(eval(l, venv).n != eval(r, venv).n);
 		case and(AExpr l, AExpr r): return vbool(eval(l, venv).b && eval(r, venv).b);
 		case or(AExpr l, AExpr r): return vbool(eval(l, venv).b || eval(r, venv).b);
 		default: throw "Unsupported expression <e>";

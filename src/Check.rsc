@@ -68,7 +68,7 @@ set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
   for(/AQuestion q := f) {
     msgs += check(q, tenv, useDef);
   }
-  return msgs;
+  return msgs + checkCyclic(tenv, useDef);
 }
 
 // - produce an error if there are declared questions with the same name but different types.
@@ -186,6 +186,7 @@ set[Message] check(AExpr e, TEnv tenv, UseDef useDef) {
   return msgs; 
 }
 
+
 set[Message] checkOperands(AExpr lhs, AExpr rhs, AExpr op, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
   Type T_lhs = typeOf(lhs, tenv, useDef);
@@ -193,9 +194,12 @@ set[Message] checkOperands(AExpr lhs, AExpr rhs, AExpr op, TEnv tenv, UseDef use
   Type opType = typeOf(op, tenv, useDef);
   str msg = "Expected type <getTypeName(opType)>";
 
-  msgs += { error("Operands must be of the same type: <getTypeName(opType)>", op.src) | T_lhs != T_rhs };
-  msgs += { error(msg + ", got <getTypeName(T_lhs)>", lhs.src) | T_lhs != tint() };
-  msgs += { error(msg + ", got <getTypeName(T_rhs)>", rhs.src) | T_rhs != tint() };
+  msgs += { error("Operands must be of the same type: <getTypeName(opType)>", op.src) 
+          | T_lhs != T_rhs };
+  msgs += { error(msg + ", got <getTypeName(T_lhs)>", lhs.src) 
+          | T_lhs != typeOfOperand(op) };
+  msgs += { error(msg + ", got <getTypeName(T_rhs)>", rhs.src) 
+          | T_rhs != typeOfOperand(op) };
   return msgs;
 }
 
@@ -237,6 +241,47 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       return tbool();
   }
   return tunknown(); 
+}
+
+Type typeOfOperand(AExpr e) {
+  switch (e) {
+    case mul(_, _):
+      return tint();
+    case div(_, _):
+      return tint();
+    case add(_, _):
+      return tint();
+    case sub(_, _):
+      return tint();
+    case lt(_, _):
+      return tint();
+    case leq(_, _):
+      return tint();
+    case gt(_, _):
+      return tint();
+    case geq(_, _):
+      return tint();
+    case eq(_, _):
+      return tint();
+    case neq(_, _):
+      return tint();
+    case and(_, _):
+      return tbool();
+    case or(_, _):
+      return tbool();
+  }
+  return tunknown();
+}
+
+set[Message] checkCyclic(TEnv tenv, UseDef useDef) {
+  transClosure = solve (useDef) {
+    useDef = useDef + (useDef o useDef);
+  }
+  println("<transClosure>");
+  cyclic = { m | <m,m> <- transClosure };
+
+  return { error("Detected cyclic dependency on variable: <name>", d) 
+         | loc m <- cyclic, <m, loc d> <- useDef, <d, str name, _, _> <- tenv };
 }
 
 /* 

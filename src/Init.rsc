@@ -26,7 +26,6 @@ void initql(loc file) {
   if (msgs == {}) {
   	VEnv venv = initialEnv(ast);
 
-  	println(venv);
   	Input inp1 = input("sellingPrice", vint(5));
   	Input inp2 = input("privateDebt", vint(2));
   	venv = eval(ast, inp1, venv);
