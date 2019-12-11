@@ -24,7 +24,34 @@ void compile(AForm f) {
 }
 
 HTML5Node form2html(AForm f) {
-  return html();
+  list[value] attrs = []; 
+  list[value] children = [form2html(q) | /q:AQuestion _ <- f]; 
+  return html([body(div(attrs + children))]);
+}
+
+HTML5Node form2html(q:question(str label, AId id, AType tp)) {
+  list[value] attrs = []; 
+  list[value] children = [p(label[1..-1]), form2html(id, tp)];
+  return div(attrs + children);
+}
+HTML5Node form2html(block(list[AQuestion] qs)) {
+  return div([form2html(q) | q <- qs]);
+}
+HTML5Node form2html(ifthen(AExpr guard, AQuestion ifq)) {
+  return div();
+}
+HTML5Node form2html(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
+  return div();
+}
+
+HTML5Node form2html(AId i, AType t) {
+  list[HTML5Attr] attrs = [id(i.name)];
+  switch(t) {
+    case integer(): attrs += [\type("number"), step("1")];
+    case boolean(): attrs += [\type("checkbox")];
+    // no attributes results in default string input
+  }
+  return input(attrs);
 }
 
 str form2js(AForm f) {
