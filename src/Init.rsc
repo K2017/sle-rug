@@ -10,7 +10,7 @@ import Resolve;
 import Check;
 import Eval;
 
-void initql(loc file) {
+value initql(loc file) {
   pt = parse(#start[Form], file);
 
   ast = cst2ast(pt);
@@ -30,6 +30,8 @@ void initql(loc file) {
   	Input inp2 = input("privateDebt", vint(2));
   	venv = eval(ast, inp1, venv);
   	venv = eval(ast, inp2, venv);
-  	println(venv);
+  	return venv;
+  } else {
+  	return msgs;
   }
 }

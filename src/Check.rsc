@@ -277,7 +277,6 @@ set[Message] checkCyclic(TEnv tenv, UseDef useDef) {
   transClosure = solve (useDef) {
     useDef = useDef + (useDef o useDef);
   }
-  println("<transClosure>");
   cyclic = { m | <m,m> <- transClosure };
 
   return { error("Detected cyclic dependency on variable: <name>", d) 
