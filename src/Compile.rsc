@@ -27,7 +27,8 @@ void compile(AForm f) {
 HTML5Node form2html(AForm f) {
   list[value] attrs = []; 
   list[value] children = [form2html(q) | q:AQuestion _ <- f.questions]; 
-  return html([body(div(attrs + children))]);
+  HTML5Node footer = footer(script(src(f.src[extension="js"].top.file)));
+  return html([body(div(attrs + children)), footer]);
 }
 
 HTML5Node form2html(q:question(str label, AId id, AType tp)) {
@@ -66,30 +67,59 @@ HTML5Node form2html(AId i, AType t) {
 // ------ JavaScript ------
 
 str form2js(AForm f) {
-  return "function updateVisibility() {\n<intercalate("\n", [form2js(q) | q <- f.questions ])>\n}";
+  list[str] decls = ["var <id.name> = document.getElementById(\'<id.name>\').<getPropName(t)>;" | /q:question(_, AId id, AType t) := f];
+  return "document.addEventListener(\'input\', function (evt) {updateVisibility();});\nupdateVisibility();\n\nfunction updateVisibility() {\n<intercalate("\n", decls + [form2js(q) | q <- f.questions ])>\n}";
 }
 
 str form2js(ifthen(AExpr guard, AQuestion ifq)) {
-  return "if (<form2js(guard)>)\n  <form2js(ifq, visible=true)>else\n  <form2js(ifq, visible=false)>";
+  return "if (<form2js(guard)>) {\n<form2js(ifq, visible=true)>\n} else {\n <form2js(ifq, visible=false)>\n}";
 }
 
 str form2js(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
-  return "if (<form2js(guard)>)\n  <form2js(ifq, visible=true)><form2js(elseq, visible=false)>else\n  <form2js(ifq, visible=false)><form2js(elseq, visible=true)>";
+  return "if (<form2js(guard)>) {\n<form2js(ifq, visible=true)><form2js(elseq, visible=false)>\n} else {\n<form2js(ifq, visible=false)><form2js(elseq, visible=true)>\n}";
 }
 
-str form2js(b:block(list[AQuestion] ifq), bool visible = true) {
-  return "document.getElementById(\'block<b.src.offset>\').style.display = <visible ? "initial" : "none">;\n";
+str form2js(b:block(list[AQuestion] qs), bool visible = true) {
+  return "document.getElementById(\'block<b.src.offset>\').style.display = <visible ? "\"\"" : "\"none\"">;\n<intercalate("\n", [form2js(q) | q <- qs])>";
 }
 
 str form2js(q:question(str label, AId id, AType tp), bool visible = true) {
-  return "document.getElementById(\'<id.name>\').style.display = <visible ? "initial" : "none">;\n";
+  return "document.getElementById(\'<id.name>\').style.display = <visible ? "\"\"" : "\"none\"">;";
 }
 
 str form2js(AExpr e) {
-  return "";
-  /*switch (e) {
-    case ref(AId x): 
-  }*/
+  switch (e) {
+    case ref(AId x): return "<x.name>";
+    case const(AConst x): return form2js(x);
+    case brack(AExpr x): return "( <form2js(x)> )";
+    case not(AExpr x): return "!<form2js(x)>";
+    case mul(AExpr l, AExpr r): return "<form2js(l)> * <form2js(r)>";
+    case div(AExpr l, AExpr r): return "<form2js(l)> / <form2js(r)>";
+    case add(AExpr l, AExpr r): return "<form2js(l)> + <form2js(r)>";
+    case sub(AExpr l, AExpr r): return "<form2js(l)> - <form2js(r)>";
+    case lt(AExpr l, AExpr r): return "<form2js(l)> \< <form2js(r)>";
+    case leq(AExpr l, AExpr r): return "<form2js(l)> \<= <form2js(r)>";
+    case gt(AExpr l, AExpr r): return "<form2js(l)> \> <form2js(r)>";
+    case geq(AExpr l, AExpr r): return "<form2js(l)> \>= <form2js(r)>";
+    case eq(AExpr l, AExpr r): return "<form2js(l)> == <form2js(r)>";
+    case neq(AExpr l, AExpr r): return "<form2js(l)> != <form2js(r)>";
+    case and(AExpr l, AExpr r): return "<form2js(l)> && <form2js(r)>";
+    case or(AExpr l, AExpr r): return "<form2js(l)> || <form2js(r)>";
+  }
 }
 
+str form2js(AConst c) {
+  switch (c) {
+    case integer(int i): return "<i>";
+    case boolean(bool b): return "<b>";
+    case string(str s): return s;
+  }
+}
 
+str getPropName(AType t) {
+  switch (t) {
+    case boolean(): return "checked";
+    case integer(): return "value";
+    case string(): return "value";
+  }
+}

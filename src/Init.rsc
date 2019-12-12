@@ -22,7 +22,7 @@ value initql(loc file) {
 
   msgs = check(ast, env, res[2]);
 
-  if (msgs == {}) {
+  if ({m | m:error(_,_) <- msgs} == {}) {
   	VEnv venv = initialEnv(ast);
 
   	Input inp1 = input("sellingPrice", vint(5));
