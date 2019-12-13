@@ -5,6 +5,7 @@ import Resolve;
 import IO;
 import lang::html5::DOM; // see standard library
 import List;
+import String;
 
 /*
  * Implement a compiler for QL to HTML and Javascript
@@ -67,20 +68,57 @@ HTML5Node form2html(AId i, AType t) {
 // ------ JavaScript ------
 
 str form2js(AForm f) {
-  list[str] decls = ["var <id.name> = document.getElementById(\'<id.name>\').<getPropName(t)>;" | /q:question(_, AId id, AType t) := f];
-  return "document.addEventListener(\'input\', function (evt) {updateVisibility();});\nupdateVisibility();\n\nfunction updateVisibility() {\n<intercalate("\n", decls + [form2js(q) | q <- f.questions ])>\n}";
+  // normal variables
+  list[str] decls = ["// variables:"];
+
+  decls += [
+"var <id.name> = document.getElementById(\'<id.name>\').<getPropName(t)>;" 
+           | /q:question(_, AId id, AType t, ex = empty()) := f];
+
+  // computed variables
+  decls += [
+"// computed variable <id.name>:
+document.getElementById(\'<id.name>\').<getPropName(t)> = <form2js(exp)>;
+document.getElementById(\'<id.name>\').readOnly = true;
+document.getElementById(\'<id.name>\').disabled = true; 
+document.getElementById(\'<id.name>\').style = \"-webkit-appearance: none; -moz-appearance:textfield; margin: 0;\";\n" 
+           | /q:question(_, AId id, AType t, ex = exp) := f, exp != empty()];
+
+  return 
+"document.addEventListener(\'input\', function (evt) {
+'  updateVisibility();
+});
+updateVisibility();
+
+function updateVisibility() {
+'  <intercalate("\n", decls + [form2js(q) | q <- f.questions ])>
+}";
 }
 
 str form2js(ifthen(AExpr guard, AQuestion ifq)) {
-  return "if (<form2js(guard)>) {\n<form2js(ifq, visible=true)>\n} else {\n <form2js(ifq, visible=false)>\n}";
+  return 
+"if (<form2js(guard)>) {
+'  <form2js(ifq, visible=true)>
+} else {
+'  <form2js(ifq, visible=false)>
+}";
 }
 
 str form2js(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
-  return "if (<form2js(guard)>) {\n<form2js(ifq, visible=true)><form2js(elseq, visible=false)>\n} else {\n<form2js(ifq, visible=false)><form2js(elseq, visible=true)>\n}";
+  return 
+"if (<form2js(guard)>) {
+'  <form2js(ifq, visible=true)>
+'  <form2js(elseq, visible=false)>
+} else {
+'  <form2js(ifq, visible=false)>
+'  <form2js(elseq, visible=true)>
+}";
 }
 
 str form2js(b:block(list[AQuestion] qs), bool visible = true) {
-  return "document.getElementById(\'block<b.src.offset>\').style.display = <visible ? "\"\"" : "\"none\"">;\n<intercalate("\n", [form2js(q) | q <- qs])>";
+  return 
+"document.getElementById(\'block<b.src.offset>\').style.display = <visible ? "\"\"" : "\"none\"">;
+<for (x <- [form2js(q) | q <- qs]) {>\n<x><}>";
 }
 
 str form2js(q:question(str label, AId id, AType tp), bool visible = true) {
