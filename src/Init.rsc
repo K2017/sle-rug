@@ -10,6 +10,7 @@ import Resolve;
 import Check;
 import Eval;
 import Compile;
+import Transform;
 
 value initql(loc file) {
   pt = parse(#start[Form], file);
@@ -23,6 +24,7 @@ value initql(loc file) {
   msgs = check(ast, env, res[2]);
 
   if ({m | m:error(_,_) <- msgs} == {}) {
+    ast = flatten(ast);
   	VEnv venv = initialEnv(ast);
 
   	Input inp1 = input("sellingPrice", vint(5));

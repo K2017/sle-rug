@@ -4,6 +4,8 @@ import Syntax;
 import Resolve;
 import AST;
 
+import List;
+
 /* 
  * Transforming QL forms
  */
@@ -29,7 +31,23 @@ import AST;
  */
  
 AForm flatten(AForm f) {
-  return f; 
+  return form(f.name, concat([flatten(q, const(boolean(true))) | q <- f.questions]), src = f.src); 
+}
+
+list[AQuestion] flatten(ifthen(AExpr guard, AQuestion ifq), AExpr exp) {
+  return flatten(ifq, and(guard, exp));
+}
+
+list[AQuestion] flatten(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq), AExpr exp) {
+  return flatten(ifq, and(guard, exp)) + flatten(elseq, and(not(guard), exp));
+}
+
+list[AQuestion] flatten(block(list[AQuestion] qs), AExpr exp) {
+  return concat([flatten(q, exp) | q <- qs]);
+}
+
+list[AQuestion] flatten(q:question(_,_,_), AExpr exp) {
+  return [ifthen(exp, q)];
 }
 
 /* Rename refactoring:

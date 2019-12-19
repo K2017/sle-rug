@@ -32,9 +32,9 @@ HTML5Node form2html(AForm f) {
   return html([body(div(attrs + children)), footer]);
 }
 
-HTML5Node form2html(q:question(str label, AId id, AType tp)) {
-  list[value] attrs = []; 
-  list[value] children = [p(label[1..-1]), form2html(id, tp)];
+HTML5Node form2html(q:question(str label, AId i, AType tp)) {
+  list[value] attrs = [id(i.name)]; 
+  list[value] children = [p(label[1..-1]), form2html(i, tp)];
   return div(attrs + children);
 }
 
@@ -55,7 +55,7 @@ HTML5Node form2html(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
 }
 
 HTML5Node form2html(AId i, AType t) {
-  list[HTML5Attr] attrs = [id(i.name)];
+  list[HTML5Attr] attrs = [id("_<i.name>")];
   switch(t) {
     case integer(): attrs += [\type("number"), step("1")];
     case boolean(): attrs += [\type("checkbox")];
@@ -72,16 +72,16 @@ str form2js(AForm f) {
   list[str] decls = ["// variables:"];
 
   decls += [
-"var <id.name> = document.getElementById(\'<id.name>\').<getPropName(t)>;" 
+"var <id.name> = document.getElementById(\'_<id.name>\').<getPropName(t)>;" 
            | /q:question(_, AId id, AType t, ex = empty()) := f];
 
   // computed variables
   decls += [
 "// computed variable <id.name>:
-document.getElementById(\'<id.name>\').<getPropName(t)> = <form2js(exp)>;
-document.getElementById(\'<id.name>\').readOnly = true;
-document.getElementById(\'<id.name>\').disabled = true; 
-document.getElementById(\'<id.name>\').style = \"-webkit-appearance: none; -moz-appearance:textfield; margin: 0;\";\n" 
+document.getElementById(\'_<id.name>\').<getPropName(t)> = <form2js(exp)>;
+document.getElementById(\'_<id.name>\').readOnly = true;
+document.getElementById(\'_<id.name>\').disabled = true; 
+document.getElementById(\'_<id.name>\').style = \"-webkit-appearance: none; -moz-appearance:textfield; margin: 0;\";\n" 
            | /q:question(_, AId id, AType t, ex = exp) := f, exp != empty()];
 
   return 
