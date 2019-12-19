@@ -23,7 +23,7 @@ syntax Question
 // Think about disambiguation using priorities and associativity
 // and use C/Java style precedence rules (look it up on the internet)
 syntax Expr 
-  = iden: Id \ "true" \ "false" // true/false are reserved keywords.
+  = iden: Id id \ "true" \ "false" // true/false are reserved keywords.
   | constant: Const
   | bracket brack: "(" Expr e ")"
   > right not: "!" Expr e 

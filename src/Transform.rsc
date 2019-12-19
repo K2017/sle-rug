@@ -5,6 +5,11 @@ import Resolve;
 import AST;
 
 import List;
+import Relation;
+import IO;
+import ParseTree;
+
+import lang::std::Id;
 
 /* 
  * Transforming QL forms
@@ -58,7 +63,16 @@ list[AQuestion] flatten(q:question(_,_,_), AExpr exp) {
  */
  
  start[Form] rename(start[Form] f, loc useOrDef, str newName, UseDef useDef) {
-   return f; 
+ 	set[loc] uses = useDef[useOrDef];
+ 	set[loc] defs = ({} | it + invert(useDef)[l] | loc l <- uses + {useOrDef});
+ 	set[loc] locs = uses + defs + {useOrDef};
+ 	println(locs);
+
+ 	f = visit (f) {
+ 		case /"question"(label,x,tp) => x@\loc in locs ? parse(#Question, "<label> <newName> : <tp>") : parse(#Question, "<label> <x> : <tp>")
+ 		case /"iden"(x) => x@\loc in locs ? parse(#Id, newName) : x
+ 	}
+   	return f; 
  } 
  
  
