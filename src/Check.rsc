@@ -27,6 +27,8 @@ TEnv collect(AForm f) {
   return env; 
 }
 
+// region Helper Funtions
+// Helper functions for extracting type information in the right format
 Type toType(AType t) {
     switch(t) {
         case integer(): return tint();
@@ -62,6 +64,8 @@ str getTypeName(Type t) {
       default: return "unknown";
     }
 }
+// end region
+
 
 set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
   set[Message] msgs = {};
@@ -125,63 +129,21 @@ set[Message] check(AExpr e, TEnv tenv, UseDef useDef) {
   Type expType = typeOf(e, tenv, useDef);
   str msg = "Expected type <getTypeName(expType)>";
 
+  // Use node pattern to match all binary operators 
+  if(str exp(AExpr lhs, AExpr rhs) := e) {
+    msgs += checkOperands(lhs, rhs, e, tenv, useDef);
+    msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
+  }
+
   switch (e) {
     case ref(id, src = loc u):
       msgs += { error("Undeclared question", u) | useDef[u] == {} };
     case not(exp, src = loc u): {
       msgs += { error(msg, u) 
-              | expType != typeOf(exp) 
+              | expType != typeOf(exp, tenv, useDef) 
               };
       msgs += check(exp, tenv, useDef); 
-    }
-    case mul(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case div(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case add(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case sub(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case lt(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case leq(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case gt(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case geq(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case eq(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case neq(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case and(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
-    case or(lhs,rhs): {
-      msgs += checkOperands(lhs, rhs, e, tenv, useDef);
-      msgs = msgs + check(lhs, tenv, useDef) + check(rhs, tenv, useDef); 
-    }
+    } 
   }
   return msgs; 
 }
@@ -282,18 +244,4 @@ set[Message] checkCyclic(TEnv tenv, UseDef useDef) {
   return { error("Detected cyclic dependency on variable: <name>", d) 
          | loc m <- cyclic, <m, loc d> <- useDef, <d, str name, _, _> <- tenv };
 }
-
-/* 
- * Pattern-based dispatch style:
- * 
- * Type typeOf(ref(str x, src = loc u), TEnv tenv, UseDef useDef) = t
- *   when <u, loc d> <- useDef, <d, x, _, Type t> <- tenv
- *
- * ... etc.
- * 
- * default Type typeOf(AExpr _, TEnv _, UseDef _) = tunknown();
- *
- */
- 
- 
 

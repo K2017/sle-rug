@@ -36,7 +36,7 @@ import lang::std::Id;
  */
  
 AForm flatten(AForm f) {
-  return form(f.name, concat([flatten(q, const(boolean(true))) | q <- f.questions]), src = f.src); 
+  return form(f.name, ([] | it + flatten(q, const(boolean(true))) | q <- f.questions), src = f.src); 
 }
 
 list[AQuestion] flatten(ifthen(AExpr guard, AQuestion ifq), AExpr exp) {
@@ -48,7 +48,7 @@ list[AQuestion] flatten(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq),
 }
 
 list[AQuestion] flatten(block(list[AQuestion] qs), AExpr exp) {
-  return concat([flatten(q, exp) | q <- qs]);
+  return ([] | it + flatten(q, exp) | q <- qs);
 }
 
 list[AQuestion] flatten(q:question(_,_,_), AExpr exp) {
@@ -61,19 +61,20 @@ list[AQuestion] flatten(q:question(_,_,_), AExpr exp) {
  * Use the results of name resolution to find the equivalence class of a name.
  *
  */
- 
- start[Form] rename(start[Form] f, loc useOrDef, str newName, UseDef useDef) {
+start[Form] rename(start[Form] f, loc useOrDef, str newName, UseDef useDef) {
  	set[loc] uses = useDef[useOrDef];
  	set[loc] defs = ({} | it + invert(useDef)[l] | loc l <- uses + {useOrDef});
  	set[loc] locs = uses + defs + {useOrDef};
- 	println(locs);
 
- 	f = visit (f) {
- 		case /"question"(label,x,tp) => x@\loc in locs ? parse(#Question, "<label> <newName> : <tp>") : parse(#Question, "<label> <x> : <tp>")
- 		case /"iden"(x) => x@\loc in locs ? parse(#Id, newName) : x
- 	}
-   	return f; 
- } 
+ 	return visit (f) {
+ 		case /"question"(label,x,tp) => [Question]"<label> <newName> : <tp>"
+                                 when loc l <- locs,
+                                 l == x@\loc
+ 		case /"iden"(x) => [Id]newName
+                    when loc l <- locs,
+                    l == x@\loc
+ 	} 
+} 
  
  
  

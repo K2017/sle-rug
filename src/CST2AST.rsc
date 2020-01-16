@@ -79,5 +79,6 @@ AConst cst2ast(Const c) {
         case "integer"(iVal): return integer(toInt("<iVal>"), src=iVal@\loc);
         case "string"(sVal): return string("<sVal>", src=sVal@\loc);
         case "boolean"(bVal): return boolean(fromString("<bVal>"), src=bVal@\loc);
+        default: throw "Unhandled constant type: <c>";
     }
 }

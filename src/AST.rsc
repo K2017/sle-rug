@@ -11,6 +11,9 @@ data AForm(loc src = |tmp:///|)
   = form(str name, list[AQuestion] questions)
   ; 
 
+/* Normal and Computed questions are disambiguated through the use of an 
+ * optional expression parameter that can be matched against
+ */
 data AQuestion(loc src = |tmp:///|)
   = question(str label, AId id, AType tp, AExpr ex = empty())
   | block(list[AQuestion] bquestions)
@@ -57,4 +60,5 @@ data AConst(loc src = |tmp:///|)
   = integer(int iVal) 
   | string(str sVal)
   | boolean(bool bVal)
+  | unknown()
   ; 

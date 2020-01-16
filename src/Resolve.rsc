@@ -27,10 +27,12 @@ alias RefGraph = tuple[
 RefGraph resolve(AForm f) = <us, ds, us o ds>
   when Use us := uses(f), Def ds := defs(f);
 
+// Uses occurr in references to identifiers
 Use uses(AForm f) {
   return { <r.src, x> | /r:ref(id(x)) := f }; 
 }
 
+// Definitions occurr in question identifiers
 Def defs(AForm f) {
   return { <id.name, id.src> | /question(_,AId id,_) := f };
 }

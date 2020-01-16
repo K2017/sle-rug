@@ -67,7 +67,7 @@ HTML5Node form2html(AId i, AType t) {
 
 // ------ JavaScript ------
 
-str form2js(AForm f) {
+str form2js(AForm f, bool visible = true) {
   // normal variables
   list[str] decls = ["// variables:"];
 
@@ -95,7 +95,7 @@ function updateVisibility() {
 }";
 }
 
-str form2js(ifthen(AExpr guard, AQuestion ifq)) {
+str form2js(ifthen(AExpr guard, AQuestion ifq), bool visible = true) {
   return 
 "if (<form2js(guard)>) {
 '  <form2js(ifq, visible=true)>
@@ -104,7 +104,7 @@ str form2js(ifthen(AExpr guard, AQuestion ifq)) {
 }";
 }
 
-str form2js(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq)) {
+str form2js(ifthenelse(AExpr guard, AQuestion ifq, AQuestion elseq), bool visible = true) {
   return 
 "if (<form2js(guard)>) {
 '  <form2js(ifq, visible=true)>
@@ -125,7 +125,7 @@ str form2js(q:question(str label, AId id, AType tp), bool visible = true) {
   return "document.getElementById(\'<id.name>\').style.display = <visible ? "\"\"" : "\"none\"">;";
 }
 
-str form2js(AExpr e) {
+str form2js(AExpr e, bool visible = true) {
   switch (e) {
     case ref(AId x): return "<x.name>";
     case const(AConst x): return form2js(x);
@@ -146,7 +146,7 @@ str form2js(AExpr e) {
   }
 }
 
-str form2js(AConst c) {
+str form2js(AConst c, bool visible = true) {
   switch (c) {
     case integer(int i): return "<i>";
     case boolean(bool b): return "<b>";
