@@ -89,7 +89,7 @@ set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
       if (exp != empty()) {
         msgs += check(exp, tenv, useDef);
         if (qtype != typeOf(exp, tenv, useDef)) {
-          msgs += { error("Expression does not match declared type", u) };
+          msgs += { error("Expression does not match declared type", exp.src) };
         }
       }
 

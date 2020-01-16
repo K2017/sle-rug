@@ -40,6 +40,7 @@ Value defaultValue(AType t) {
 			return vbool(false);
 		case string():
 			return vstr("");
+		default: throw "Unhandled type: <t>";
 	}
 }
 
@@ -92,5 +93,6 @@ Value eval(AConst c) {
 		case integer(x): return vint(x);
 		case string(x): return vstr(x);
 		case boolean(x): return vbool(x);
+		default: throw "Unhandled constant: <c>";
 	}
 }

@@ -28,8 +28,8 @@ void compile(AForm f) {
 HTML5Node form2html(AForm f) {
   list[value] attrs = []; 
   list[value] children = [form2html(q) | q:AQuestion _ <- f.questions]; 
-  HTML5Node footer = footer(script(src(f.src[extension="js"].top.file)));
-  return html([body(div(attrs + children)), footer]);
+  HTML5Node foot = footer(script(src(f.src[extension="js"].top.file)));
+  return html([body(div(attrs + children)), foot]);
 }
 
 HTML5Node form2html(q:question(str label, AId i, AType tp)) {
@@ -143,6 +143,7 @@ str form2js(AExpr e, bool visible = true) {
     case neq(AExpr l, AExpr r): return "<form2js(l)> != <form2js(r)>";
     case and(AExpr l, AExpr r): return "<form2js(l)> && <form2js(r)>";
     case or(AExpr l, AExpr r): return "<form2js(l)> || <form2js(r)>";
+    default: throw "Unhandled expression: <e>";
   }
 }
 
@@ -151,6 +152,7 @@ str form2js(AConst c, bool visible = true) {
     case integer(int i): return "<i>";
     case boolean(bool b): return "<b>";
     case string(str s): return s;
+    default: throw "Unhandled constant: <c>";
   }
 }
 
@@ -159,5 +161,6 @@ str getPropName(AType t) {
     case boolean(): return "checked";
     case integer(): return "value";
     case string(): return "value";
+    default: throw "Unhandled type: <t>";
   }
 }

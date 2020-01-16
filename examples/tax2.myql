@@ -31,6 +31,8 @@ form taxOfficeExample {
       valueResidue: integer = sellingPrice - privateDebt
     "Value residue:"
       valueResidue: boolean = sellingPrice - privateDebt
+    "Test"
+      test: boolean = sellingPrice - privateDebt
       
   }
 }
